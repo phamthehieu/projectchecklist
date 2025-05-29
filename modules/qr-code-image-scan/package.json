@@ -1,0 +1,14 @@
+{
+    "name": "react-native-qr-code-image-scan",
+    "version": "1.0.0",
+    "description": "module for scan qr code from image",
+    "main": "src/index.tsx",
+    "author": " <> ()",
+    "license": "UNLICENSED",
+    "homepage": "#readme",
+    "create-react-native-library": {
+      "type": "module-legacy",
+      "languages": "kotlin-swift",
+      "version": "0.41.2"
+    }
+  }
