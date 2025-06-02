@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Dimensions } from 'react-native';
 import {
     Select,
@@ -50,6 +50,7 @@ interface SelectComponentProps {
     size?: "sm" | "md" | "lg" | "xl";
     heightProps?: number;
     borderRadius?: number;
+    getFilteredOptions?: () => number[];
 }
 
 const SelectComponent: React.FC<SelectComponentProps> = ({
@@ -63,19 +64,31 @@ const SelectComponent: React.FC<SelectComponentProps> = ({
     labelRequired,
     chuthich,
     readonly,
+    style,
     variant = 'outline',
     size = "md",
     heightProps = 48,
     borderRadius = 12,
+    getFilteredOptions
 }) => {
     const colors = useAppColors();
     const [search, setSearch] = useState('');
-    const filteredOptions = options.filter(
-        option => option.label.toLowerCase().includes(search.toLowerCase())
-    );
+    const [isOpen, setIsOpen] = useState(false);
+
+    const filteredOptions = useMemo(() => {
+        if (getFilteredOptions) {
+            const indices = getFilteredOptions();
+            if (Array.isArray(indices)) {
+                return options.filter((_, index) => indices.includes(index));
+            }
+        }
+        return options.filter(option =>
+            option.label.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [options, getFilteredOptions, search]);
 
     return (
-        <FormControl isDisabled={readonly}>
+        <FormControl style={style} isDisabled={readonly}>
             {label && (
                 <FormControlLabel mb="$1">
                     <FormControlLabelText color={colors.text.primary}>
@@ -91,9 +104,9 @@ const SelectComponent: React.FC<SelectComponentProps> = ({
             )}
 
             <Select
+                selectedValue={selectedValue?.value}
                 onValueChange={onValueChange}
                 isDisabled={readonly}
-                defaultValue={selectedValue?.label}
             >
                 <SelectTrigger
                     variant={variant}

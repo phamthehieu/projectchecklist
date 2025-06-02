@@ -22,6 +22,7 @@ import { NetworkProvider } from '../../../contexts/NetworkContext';
 import { NetworkStatus } from '../../components/NetworkStatus/NetworkStatus';
 import QrCodeComponent from '../../components/Camera/QrCodeComponent';
 import { useAppColors } from '../../../hooks/useAppColors';
+import CatalogDetailsComponent from '../catalogDetails/CatalogDetailsComponent';
 
 const Stack = createNativeStackNavigator();
 
@@ -142,6 +143,12 @@ function MainScreen() {
           <Stack.Screen
             component={QrCodeComponent}
             name="QrCodeComponent"
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            component={CatalogDetailsComponent}
+            name="CatalogDetailsComponent"
             options={{ headerShown: false }}
           />
 

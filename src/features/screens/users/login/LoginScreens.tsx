@@ -12,23 +12,37 @@ import {
     InputSlot,
     ScrollView,
     CheckboxIndicator,
-    CheckboxIcon,
     CheckboxLabel,
     Button,
     ButtonText,
     ButtonIcon,
-    useColorMode,
 } from '@gluestack-ui/themed';
 import LinearGradient from 'react-native-linear-gradient';
 import * as Keychain from 'react-native-keychain';
-import { Image, StatusBar } from "react-native";
-import { CheckIcon, EyeClosedIcon, EyeIcon, KeyRoundIcon, Mail, FingerprintIcon } from "lucide-react-native";
+import { Image, StatusBar, NativeModules } from "react-native";
+import { EyeClosedIcon, EyeIcon, KeyRoundIcon, Mail, FingerprintIcon } from "lucide-react-native";
 import { useTranslation } from 'react-i18next';
 import Toast from "react-native-toast-message";
 import appStorage from "../../../../repositories/local_storage";
 import KeyStoreData from "../../../../repositories/local_storage/KeyStoreData";
 import { useAppColorMode } from "../../../components/ColorModeContext";
 import { useAppColors } from "../../../../hooks/useAppColors";
+import DeviceInfo from "react-native-device-info";
+import axios from "axios";
+import moment from "moment";
+import uuid from 'react-native-uuid';
+
+const { ForegroundService } = NativeModules;
+
+type ForegroundServiceParams = {
+    id_TaiKhoan: string;
+    id_PhuongTien: string;
+    userName: string;
+    authToken: string;
+    refreshToken: string;
+    baseUrl: string;
+};
+
 
 const LoginScreens: React.FC = ({ navigation }: any) => {
     const { t, i18n } = useTranslation();
@@ -37,8 +51,8 @@ const LoginScreens: React.FC = ({ navigation }: any) => {
     const isDarkMode = colorMode === 'dark';
     const [showPassword, setShowPassword] = useState(false);
     const [remember, setRemember] = useState(false);
-    const [email, setEmail] = useState("admin@gmail.com");
-    const [password, setPassword] = useState("123456");
+    const [email, setEmail] = useState("nvnga");
+    const [password, setPassword] = useState("1");
 
     const validateEmail = (email: string) => {
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
@@ -46,74 +60,92 @@ const LoginScreens: React.FC = ({ navigation }: any) => {
     };
 
     const handleLogin = async () => {
-        if (email === "") {
-            Toast.show({
-                type: "error",
-                text1: t("error"),
-                text2: t("error_email_required")
-            });
-            return;
-        }
+        // try {
+        // const uniqueId = await DeviceInfo.getUniqueId();
+        // const payload = {
+        //     UserName: email,
+        //     Password: password,
+        //     OS: DeviceInfo.getSystemName() == 'Android' ? '1' : '2',
+        //     OS_Version: DeviceInfo.getSystemVersion(),
+        //     Model: DeviceInfo.getDeviceNameSync(),
+        //     Brand: DeviceInfo.getSystemName(),
+        //     Imei: uniqueId,
+        //     App_Version: DeviceInfo.getVersion(),
+        //     RequestId: '',
+        //     ID_Push: "aaaaasdfgh",
+        // };
 
-        if (password === "") {
-            Toast.show({
-                type: "error",
-                text1: t("error"),
-                text2: t("error_password_required")
-            });
-            return;
-        }
+        // const config = {
+        //     method: 'post',
+        //     url: 'http://dev.lachongtech.vn:8718/api/login/login-app',
+        //     headers: {
+        //         'x-requestid': '""',
+        //         'Content-Type': 'application/json'
+        //     },
+        //     data: payload
+        // };
 
-        if (!validateEmail(email)) {
-            Toast.show({
-                type: "error",
-                text1: t("error"),
-                text2: t("error_email")
-            });
-            return;
-        }
+        // const response = await axios(config);
 
-        if (password.length < 6) {
-            Toast.show({
-                type: "error",
-                text1: t("error"),
-                text2: t("error_password")
-            });
-            return;
-        }
+        // if (response.data.IsSuccess) {
+        //     const data = response.data.Value;
+        //     console.log(data);
+        //     startGPSService({
+        //         id_TaiKhoan: data.ID_TaiKhoan,
+        //         id_PhuongTien: data.ID_PhuongTien,
+        //         userName: data.UserName,
+        //         authToken: data.AuthToken,
+        //         refreshToken: data.RefreshToken,
+        //         baseUrl: "http://dev.lachongtech.vn:8718",
+        //     });
 
-        if (email === "admin@gmail.com" && password === "123456") {
-            if (remember) {
-                await saveLoginCredentials(email, password);
-                appStorage.setBool(KeyStoreData.REMEMBER, true);
-            } else {
-                await Keychain.resetGenericPassword();
-                appStorage.setBool(KeyStoreData.REMEMBER, false);
-            }
-            Toast.show({
-                type: "success",
-                text1: t("success"),
-                text2: t("login_success")
-            });
-            navigation.replace('BottomBarScreen');
-        }
+        navigation.replace('BottomBarScreen');
+
+        //     } else {
+        //         // Sai tài khoản/mật khẩu, báo lỗi
+        //         Toast.show({
+        //             type: 'error',
+        //             text1: 'Đăng nhập thất bại!',
+        //             text2: response.data.msg || 'Sai tài khoản hoặc mật khẩu.'
+        //         });
+        //     }
+
+        // } catch (error) {
+        //     console.log("error", error);
+        //     Toast.show({
+        //         type: 'error',
+        //         text1: 'Lỗi kết nối với server!',
+        //         text2: `Xin vui lòng kiểm tra lại đường truyền mạng và thử lại.`,
+        //     });
+        // } finally {
+        //     // Nếu muốn làm gì sau khi xong, ví dụ tắt loading
+        // }
     }
 
-    const saveLoginCredentials = async (username: string, password: string) => {
-        try {
-            await Keychain.setGenericPassword(username, password);
-        } catch (error) {
-            Toast.show({
-                type: 'error',
-                text1: 'Đã xảy ra lỗi!',
-                text2: 'Không thể lưu thông tin đăng nhập!',
-                visibilityTime: 1400
-            });
-        }
-    }
+    const startGPSService = async ({
+        id_TaiKhoan,
+        id_PhuongTien,
+        userName,
+        authToken,
+        baseUrl,
+        refreshToken,
+    }: ForegroundServiceParams) => {
+        const time = moment().format('YYYY-MM-DD HH:mm:ss').toString() + 'Z';
+        const batteryLevel = Math.floor(DeviceInfo.getBatteryLevelSync() * 100);
 
-    const changeLanguage = (language: string) => {
-        i18n.changeLanguage(language);
+        // await requestBackgroundLocationPermission();
+
+        ForegroundService.startService(
+            uuid.v4() + '',
+            id_TaiKhoan,
+            id_PhuongTien,
+            userName,
+            batteryLevel,
+            time,
+            authToken,
+            refreshToken,
+            baseUrl,
+        );
     };
 
     useEffect(() => {

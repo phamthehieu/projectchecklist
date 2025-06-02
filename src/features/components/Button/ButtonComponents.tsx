@@ -203,6 +203,7 @@ const ButtonComponents: React.FC<ButtonProps> = ({
                     margin={marginText}
                     ml="$2"
                     mr="$2"
+                    fontSize="$sm"
                     color={finalTextColor}
                 >
                     {title}

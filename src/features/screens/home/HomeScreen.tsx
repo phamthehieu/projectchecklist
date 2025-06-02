@@ -76,6 +76,7 @@ const HomeScreen = () => {
     };
 
     const startTracking = async () => {
+        navigation.navigate('CatalogDetailsComponent');
         // try {
         //     const hasPermission = await requestLocationPermission();
         //     if (!hasPermission) {

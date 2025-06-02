@@ -1,8 +1,9 @@
-import { Table, Row } from 'react-native-table-component'; // Import Table và Row từ thư viện react-native-table-component
+
 import React, { useEffect, useState } from 'react'; // Import React và các hook useEffect, useState
 import { ScrollView, StyleSheet, View, Text as RNText, PixelRatio } from 'react-native'; // Import các component cơ bản từ React Native
 import { Text } from '@gluestack-ui/themed'; // Import component Text từ Gluestack UI
-import { useAppColorMode } from '../ColorModeContext'; // Hook để lấy trạng thái chế độ màu (sáng/tối)
+import { useAppColorMode } from '../ColorModeContext';
+import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 
 // Định nghĩa interface cho props của component TableComponents
 interface IProps {

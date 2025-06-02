@@ -96,11 +96,14 @@ const AppTextField: React.FC<Props> = (props) => {
   // Tạo icon bên phải dựa trên loại input (mật khẩu hoặc tùy chỉnh)
   const rightIcon = useMemo(() => {
     if (customRightIcon) {
-      return customRightIcon; // Sử dụng icon tùy chỉnh nếu được truyền vào
+      return (
+        <Pressable onPress={onRightIconPress} disabled={disabled}>
+          {customRightIcon}
+        </Pressable>
+      );
     }
 
     if (secure) {
-      // Nếu là input mật khẩu, hiển thị icon Eye/EyeOff để ẩn/hiện
       return (
         <Pressable onPress={toggleSecureText} disabled={disabled}>
           <InputIcon
@@ -112,7 +115,7 @@ const AppTextField: React.FC<Props> = (props) => {
     }
 
     return null;
-  }, [customRightIcon, secure, secureText, toggleSecureText, disabled, colorIconRight]);
+  }, [customRightIcon, secure, secureText, toggleSecureText, disabled, colorIconRight, onRightIconPress]);
 
   const handleChangeText = (text: string) => {
     if (keyboardType === 'numeric') {

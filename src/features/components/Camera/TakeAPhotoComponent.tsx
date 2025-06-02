@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { Dimensions, ModalProps, Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Loader from '../loader/LoadingComponent';
 import { Camera, useCameraDevice, useCameraFormat, useCameraPermission } from 'react-native-vision-camera';
 import { Circle } from 'lucide-react-native';
@@ -11,13 +11,13 @@ import { Image } from '@gluestack-ui/themed';
 import UUID from 'react-native-uuid';
 import ImageMarker, { Position } from 'react-native-image-marker';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { ImageProps, Props } from './CameraProps';
+import { TakeAPhotoProps, ImageData } from './types';
 import { styles } from './style';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-const TakeAPhotoComponent: React.FC<Props> = props => {
+const TakeAPhotoComponent: React.FC<TakeAPhotoProps> = props => {
     const colors = useAppColors();
     const { isActive, onClose, config = {}, onPhotoTaken, onError } = props;
     const { hasPermission, requestPermission } = useCameraPermission();
@@ -36,7 +36,7 @@ const TakeAPhotoComponent: React.FC<Props> = props => {
     const [showListFlast, setShowListFlast] = useState(false);
     const [zoom, setZoom] = useState(config.defaultZoom || 1);
     const [flash, setFlash] = useState(1);
-    const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>(config.enableFrontCamera ? 'front' : 'back');
+    const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>(config.enableFrontCamera ? 'back' : 'front');
     const [takePhotoOptionsCameraBack, setTakePhotoOptionsCameraBack] = useState({
         qualityPrioritization: config.photoQuality || 'speed',
         flash: 'auto',
@@ -121,7 +121,7 @@ const TakeAPhotoComponent: React.FC<Props> = props => {
 
                 try {
                     await CameraRoll.save(imagePath, { type: 'photo' });
-                    const photoData: ImageProps = {
+                    const photoData: ImageData = {
                         id: id,
                         url: imagePath,
                         node: "",

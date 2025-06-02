@@ -7,11 +7,11 @@ import { useAppColors } from '../../../hooks/useAppColors';
 import PhotoControls from './components/PhotoControls';
 import FlashControls from './components/FlashControls';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { styles } from './style';
+import { styles } from './styles';
 import * as Progress from 'react-native-progress';
 import Video from 'react-native-video';
 
-interface VideoRecordingProps extends Partial<ModalProps> {
+export interface VideoRecordingProps extends Partial<ModalProps> {
     isActive: boolean;
     onClose: () => void;
     onVideoRecorded?: (videoPath: string) => void;
@@ -31,6 +31,13 @@ interface VideoRecordingProps extends Partial<ModalProps> {
         top?: () => React.ReactNode;
         bottom?: () => React.ReactNode;
     };
+    videoCodec?: 'h264' | 'h265';
+    videoBitRate?: 'low' | 'normal' | 'high';
+    videoStabilizationMode?: 'off' | 'standard' | 'cinematic' | 'auto';
+    enableZoomGesture?: boolean;
+    saveToCameraRoll?: boolean;
+    showPreview?: boolean;
+    previewModalProps?: Partial<ModalProps>;
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -55,6 +62,13 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
     initialHdrEnabled = false,
     customStyles,
     renderCustomControls,
+    videoCodec = 'h265',
+    videoBitRate = 'normal',
+    videoStabilizationMode = 'auto',
+    enableZoomGesture = true,
+    saveToCameraRoll = true,
+    showPreview = true,
+    previewModalProps,
 }) => {
     const colors = useAppColors();
     const os = Platform.OS;
@@ -75,7 +89,7 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
     const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>(initialCameraPosition);
     const [isRecording, setIsRecording] = useState(false);
     const [mic, setMic] = useState(initialMicEnabled);
-    const [showPreview, setShowPreview] = useState(false);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
     const videoRef = useRef(null);
 
     const device: any = useCameraDevice(cameraPosition);
@@ -125,7 +139,7 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                 }
 
                 await camera.current?.startRecording({
-                    videoCodec: 'h265',
+                    videoCodec,
                     onRecordingError: (error: any) => {
                         onError?.(error);
                         setIsRecording(false);
@@ -143,7 +157,9 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                         setIsRecording(false);
                         isRecordingRef.current = false;
                         setVideoPath(video.path);
-                        CameraRoll.save(`file://${video.path}`, { type: 'video' });
+                        if (saveToCameraRoll) {
+                            CameraRoll.save(`file://${video.path}`, { type: 'video' });
+                        }
                         onVideoRecorded?.(video.path);
                         if (timerRef.current !== null) {
                             clearInterval(timerRef.current);
@@ -170,7 +186,7 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                 }
             }
         }
-    }, [flash, maxDuration, onError, onVideoRecorded]);
+    }, [flash, maxDuration, onError, onVideoRecorded, saveToCameraRoll, videoCodec]);
 
     const toggleCamera = () => {
         if (cameraPosition === 'back') {
@@ -206,18 +222,18 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                 device={device}
                 isActive={isActive}
                 style={os === 'android' ? { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } : StyleSheet.absoluteFill}
-                enableZoomGesture={true}
+                enableZoomGesture={enableZoomGesture}
                 video={true}
                 videoHdr={photoHdr}
                 format={format}
                 resizeMode={'cover'}
-                videoBitRate={'normal'}
-                videoStabilizationMode={'auto'}
+                videoBitRate={videoBitRate}
+                videoStabilizationMode={videoStabilizationMode}
                 audio={mic}
                 torch={flash === 2 ? 'on' : 'off'}
             />
         );
-    }, [camera, device, isActive, os, photoHdr, SCREEN_WIDTH, permissionGranted, requestPermission, mic, flash]);
+    }, [camera, device, isActive, os, photoHdr, SCREEN_WIDTH, permissionGranted, requestPermission, mic, flash, enableZoomGesture, videoBitRate, videoStabilizationMode]);
 
     const onChangeFlash = (newFlash: any) => {
         setFlash(newFlash);
@@ -228,8 +244,7 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
         return (
             <>
                 {!isRecording &&
-                    <View style={styles.viewTop}>
-
+                    <View style={[styles.viewTop, customStyles?.controls]}>
                         <FlashControls
                             type={"video"}
                             flash={flash}
@@ -249,19 +264,18 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                                 cameraPosition={cameraPosition}
                             />
                         )}
-
                     </View>
                 }
             </>
         );
-    }, [photoHdr, showListFlast, flash, colors, ultraWideDevice, cameraPosition, isRecording]);
+    }, [photoHdr, showListFlast, flash, colors, ultraWideDevice, cameraPosition, isRecording, customStyles?.controls]);
 
     const renderVideoPreview = useMemo(() => {
-        if (!videoPath) return null;
+        if (!videoPath || !showPreview) return null;
 
         return (
             <TouchableOpacity
-                onPress={() => setShowPreview(true)}
+                onPress={() => setShowPreviewModal(true)}
                 style={styles.previewButton}
             >
                 <Video
@@ -275,22 +289,23 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                 </View>
             </TouchableOpacity>
         );
-    }, [videoPath]);
+    }, [videoPath, showPreview]);
 
     const renderPreviewModal = useMemo(() => {
-        if (!showPreview || !videoPath) return null;
+        if (!showPreviewModal || !videoPath || !showPreview) return null;
 
         return (
             <Modal
-                visible={showPreview}
+                visible={showPreviewModal}
                 transparent={true}
                 animationType="fade"
-                onRequestClose={() => setShowPreview(false)}
+                onRequestClose={() => setShowPreviewModal(false)}
+                {...previewModalProps}
             >
                 <View style={styles.previewModalContainer}>
                     <TouchableOpacity
                         style={styles.closeButton}
-                        onPress={() => setShowPreview(false)}
+                        onPress={() => setShowPreviewModal(false)}
                     >
                         <X size={24} color="white" />
                     </TouchableOpacity>
@@ -305,12 +320,12 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                 </View>
             </Modal>
         );
-    }, [showPreview, videoPath]);
+    }, [showPreviewModal, videoPath, showPreview, previewModalProps]);
 
     const renderOptionBottom = useCallback(() => {
         return (
             <>
-                <View style={styles.viewBottom}>
+                <View style={[styles.viewBottom, customStyles?.controls]}>
                     {!isRecording ?
                         <TouchableOpacity
                             onPress={() => setMic(!mic)}
@@ -351,7 +366,7 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                                         thickness={5}
                                         color={'#FA5252'}
                                         unfilledColor={'#FFFFFF20'}
-                                        style={{ marginBottom: 5 }}
+                                        style={[customStyles?.progress, { marginBottom: 5 }]}
                                     />
                                 )}
                             </>
@@ -375,7 +390,7 @@ const VideoRecordingComponent: React.FC<VideoRecordingProps> = ({
                 </View>
             </>
         );
-    }, [cameraPosition, mic, isRecording, recordTime, maxDuration, renderVideoPreview]);
+    }, [cameraPosition, mic, isRecording, recordTime, maxDuration, renderVideoPreview, customStyles?.controls, customStyles?.progress]);
 
     const renderRecordingTime = useMemo(() => {
         if (!isRecording) return null;

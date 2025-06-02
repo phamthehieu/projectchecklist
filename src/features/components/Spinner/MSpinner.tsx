@@ -13,7 +13,7 @@ interface IProps {
 
 const MSpinner: React.FC<IProps> = ({
   loading,
-  title = "Please Wait",
+  title = "Đang tải dữ liệu",
   size = "large"
 }) => {
 
