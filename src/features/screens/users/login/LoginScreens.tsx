@@ -31,6 +31,7 @@ import DeviceInfo from "react-native-device-info";
 import axios from "axios";
 import moment from "moment";
 import uuid from 'react-native-uuid';
+import { fonts } from "../../../../theme/fonts";
 
 const { ForegroundService } = NativeModules;
 
@@ -189,11 +190,11 @@ const LoginScreens: React.FC = ({ navigation }: any) => {
                         mb={40}
                         p={16}
                     >
-                        <Text textAlign="center" mb={4} fontSize={28} fontWeight="bold" color={colors.text.primary}>
+                        <Text textAlign="center" mb={4} fontSize={28} fontWeight="bold" color={colors.text.primary} fontFamily={fonts.inter.bold}>
                             {t("login")}
                         </Text>
                         <HStack justifyContent="center" mb={4}>
-                            <Text color={colors.text.secondary} fontSize={12}>{t("title_signup")} </Text>
+                            <Text color={colors.text.secondary} fontSize={12} >{t("title_signup")} </Text>
                             <Pressable onPress={() => {
                                 setTimeout(() => {
                                     navigation.navigate('RegisterScreen');
